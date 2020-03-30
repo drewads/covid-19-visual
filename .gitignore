@@ -1,0 +1,6 @@
+server/auth.js
+data/**
+deploy.txt
+node_modules/
+dist/**
+.ipynb_checkpoints/
