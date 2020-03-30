@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const fsPromises = fs.promises;
 const child_process = require('child_process');
-const email = require(path.join(__dirname, 'email.js'));
+const email = require(path.join(__dirname, '../server/email.js'));
 require('@babel/register');
 const pageRender = require(path.join(__dirname, '../src/index.jsx'));
 
@@ -26,7 +26,7 @@ const getNewData = (url) => {
 const checkDiff = async (file, newData) => {
     try {
         const currData = await fsPromises.readFile(file, {encoding: 'utf-8'});
-        return newData !== currData;
+        return true; //newData !== currData;
     } catch (error) {
         throw error;
     }
@@ -34,7 +34,7 @@ const checkDiff = async (file, newData) => {
 
 const runVisualizer = () => {
     return new Promise((resolve, reject) => {
-        // change for deploy: python3 on raspbian, pythonw on macos
+        // python3 on raspbian, pythonw on macos
         child_process.exec('pythonw plot-states.py', {cwd: __dirname}, (error, stdout, stderr) => {
             if (error) {
                 reject(error);

@@ -2,5 +2,7 @@ server/auth.js
 data/**
 deploy.txt
 node_modules/
-dist/**
+dist/index.html
 .ipynb_checkpoints/
+server/drewwadsworth.com.key
+server/drewwadsworth.com.pem

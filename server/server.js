@@ -9,45 +9,48 @@ const milliSecPerSec = 1000;
 const secPerHour = 3600;
 const hourInterval = 1;     // check for a new commit every hour
 
+visualize.revisualizeData();
 setInterval(visualize.revisualizeData, milliSecPerSec*secPerHour*hourInterval);
 
 const server = express();
 const PORT = 443;
 const HTTP_PORT = 80;
-/*const sslOptions = { // enable for deploy
+const sslOptions = {
 	key: fs.readFileSync(path.join(__dirname, 'drewwadsworth.com.key')),
 	cert: fs.readFileSync(path.join(__dirname, 'drewwadsworth.com.pem'))
 };
 
 https.createServer(sslOptions, server).listen(PORT, () => {
-    console.log(`server listening on port ${PORT}`);
-});*/
+    console.log(`https server listening on port ${PORT}`);
+});
 
 http.createServer(server).listen(HTTP_PORT, () => {
     console.log(`http server listening on port ${HTTP_PORT}`);
 });
 
-/*server.all('*', (req, res, next) => { // enable for deploy
+server.all('*', (req, res, next) => {
     if (req.secure) {
 	    next();
     } else {
         res.redirect(308, `https://${req.hostname}${req.url}`);
     }
-});*/
-
-server.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
+
+const setNoStore = (res, path, stat) => {
+    res.set('Cache-Control', 'no-store');
+} 
+
+server.use(express.static(path.join(__dirname, '../dist'), {setHeaders: setNoStore}));
 
 server.use(express.static(path.join(__dirname, '../data/plots')));
 
-server.use((req, res) => {
-    if (req.method === 'GET' || req.method === 'HEAD') {
-        res.status(404);
-        res.send('Error 404: File Not Found');
-    } else {
-        res.status(405);
-        res.header('Allow', 'GET, HEAD');
-        res.send('Error 405: Method Not Allowed');
-    }
+server.get('*', (req, res) => {
+    res.status(404);
+    res.send('Error 404: File Not Found');
+});
+
+server.all('*', (req, res) => {
+    res.status(405);
+    res.header('Allow', 'GET, HEAD');
+    res.send('Error 405: Method Not Allowed');
 });

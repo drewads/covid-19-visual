@@ -21,7 +21,7 @@ const HTTP_PORT = 80; // change for deploy
 };
 
 https.createServer(sslOptions, server).listen(PORT, () => {
-    console.log(`server listening on port ${PORT}`);
+    console.log(`https server listening on port ${PORT}`);
 });*/
 
 http.createServer(server).listen(HTTP_PORT, () => {
