@@ -7,6 +7,7 @@ function getPage(recentData) {
         <html>
             <head>
                 <title>COVID-19 Data Visualization</title>
+                <link rel="icon" type="image/png" href="./favicon.png" sizes="64x64"></link>
                 <link rel='stylesheet' href='./styles.css'></link>
             </head>
             <body>

@@ -9,7 +9,6 @@ const milliSecPerSec = 1000;
 const secPerHour = 3600;
 const hourInterval = 1;     // check for a new commit every hour
 
-visualize.revisualizeData();
 setInterval(visualize.revisualizeData, milliSecPerSec*secPerHour*hourInterval);
 
 const server = express();

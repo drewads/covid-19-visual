@@ -26,7 +26,7 @@ const getNewData = (url) => {
 const checkDiff = async (file, newData) => {
     try {
         const currData = await fsPromises.readFile(file, {encoding: 'utf-8'});
-        return true; //newData !== currData;
+        return newData !== currData;
     } catch (error) {
         throw error;
     }

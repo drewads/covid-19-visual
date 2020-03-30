@@ -25,7 +25,7 @@ function Document(props) {
                     Github
                 </a>.
                 The data and plots on this site are updated automatically within an hour of
-                a new data update.
+                every new data update.
             </div>
             {assembleStates(props.recentData)}
         </div>

@@ -14,7 +14,7 @@ visualize.revisualizeData(); // disable for deploy
 
 const server = express();
 const PORT = 443;
-const HTTP_PORT = 80; // change for deploy
+const HTTP_PORT = 8080; // change for deploy
 /*const sslOptions = { // enable for deploy
 	key: fs.readFileSync(path.join(__dirname, 'drewwadsworth.com.key')),
 	cert: fs.readFileSync(path.join(__dirname, 'drewwadsworth.com.pem'))
@@ -39,7 +39,7 @@ http.createServer(server).listen(HTTP_PORT, () => {
 const setNoStore = (res, path, stat) => {
     res.set('Cache-Control', 'no-store');
 } 
-
+// change the following. only index.html should have no-store header, but shud prob content hash the others
 server.use(express.static(path.join(__dirname, '../dist'), {setHeaders: setNoStore}));
 
 server.use(express.static(path.join(__dirname, '../data/plots')));
