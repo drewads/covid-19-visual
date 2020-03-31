@@ -4,10 +4,10 @@ const fs = require('fs');
 const fsPromises = fs.promises;
 const child_process = require('child_process');
 const crypto = require('crypto');
-const email = require(path.join(__dirname, '../server/email.js'));
+const email = require(path.join(__dirname, '../server/email/email.js'));
 require('@babel/register');
 const pageRender = require(path.join(__dirname, '../src/index.jsx'));
-const contentHash = require(path.join(__dirname, 'content-hash.js'));
+const contentHash = require(path.join(__dirname, '../server/contentHashing/content-hash.js'));
 
 const getNewData = (url) => {
     return new Promise(resolve => {
@@ -37,7 +37,7 @@ const checkDiff = async (file, newData) => {
 const runVisualizer = () => {
     return new Promise((resolve, reject) => {
         // python3 on raspbian, pythonw on macos -- also, change cwd to __dirname
-        child_process.exec('pythonw plot-states.py', {cwd: path.join(__dirname, '../server')}, (error, stdout, stderr) => {
+        child_process.exec('pythonw plot-states.py', {cwd: path.join(__dirname, '../server/dataAnalysis')}, (error, stdout, stderr) => {
             if (error) {
                 reject(error);
             } else {
@@ -126,29 +126,13 @@ const deleteFiles = async (dir, files) => {
     }
 }
 
-const hashStaticFiles = async () => {
-    const hashFilesInDistDir = ['favicon.png', 'styles.css'];
-    try {
-        // fix the fact were comparing path with basename
-        const filesInDistDir = await fsPromises.readdir(path.join(__dirname, '../dist'));
-        const toHash = filesInDistDir.filter(file => hashFilesInDistDir.includes(file));
-        const hashed = await contentHash.hashFiles(toHash.map(file => path.join(__dirname, '../dist', file)));
-        if (hashed.length > 0) {
-            console.log(`The following files were content hashed: ${hashed}!`);
-        }
-    } catch (error) {
-        throw error;
-    }
-}
-
 exports.revisualizeData = async () => {
-    /*const stateUrl = 'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv';
+    const stateUrl = 'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv';
     const stateData = await getNewData(stateUrl);
     const writeLoc = path.join(__dirname, '../data/us-states.csv');/**/ // enable for deploy
     
     try {
-        await hashStaticFiles();
-        /*if (await checkDiff(writeLoc, stateData)) { // enable for deploy
+        //if (await checkDiff(writeLoc, stateData)) { // enable for deploy
             await fsPromises.writeFile(writeLoc, stateData);/**/
             const plotDir = path.join(__dirname, '../data/plots');
             const oldPlots = await fsPromises.readdir(plotDir);

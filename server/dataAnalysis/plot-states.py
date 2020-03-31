@@ -8,10 +8,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from textwrap import wrap
 
-totalPlot = '../data/plots/{}Total.png'
-newPlot = '../data/plots/{}New.png'
-recentFile = '../data/recent-state-data.csv'
-nationalDataFile = '../data/us-states.csv'
+totalPlot = '../../data/plots/{}Total.png'
+newPlot = '../../data/plots/{}New.png'
+recentFile = '../../data/recent-state-data.csv'
+nationalDataFile = '../../data/us-states.csv'
 
 
 # In[ ]:

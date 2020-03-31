@@ -16,16 +16,16 @@ const server = express();
 const PORT = 443;
 const HTTP_PORT = 8080; // change for deploy
 /*const sslOptions = { // enable for deploy
-	key: fs.readFileSync(path.join(__dirname, 'drewwadsworth.com.key')),
-	cert: fs.readFileSync(path.join(__dirname, 'drewwadsworth.com.pem'))
+	key: fs.readFileSync(path.join(__dirname, 'ssl/drewwadsworth.com.key')),
+	cert: fs.readFileSync(path.join(__dirname, 'ssl/drewwadsworth.com.pem'))
 };
 
 https.createServer(sslOptions, server).listen(PORT, () => {
-    console.log(`https server listening on port ${PORT}`);
+    console.log(`\x1b[1m\x1b[32m[covid-19-visual server]\x1b[0m https server listening on port ${PORT}`);
 });*/
 
 http.createServer(server).listen(HTTP_PORT, () => {
-    console.log(`http server listening on port ${HTTP_PORT}`);
+    console.log(`\x1b[1m\x1b[32m[covid-19-visual server]\x1b[0m http server listening on port ${HTTP_PORT}`);
 });
 
 /*server.all('*', (req, res, next) => { // enable for deploy

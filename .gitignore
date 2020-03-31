@@ -1,9 +1,9 @@
-server/auth.js
+server/email/auth.js
 data/**
 deploy.txt
 node_modules/
 dist/*
 .ipynb_checkpoints/
-server/drewwadsworth.com.key
-server/drewwadsworth.com.pem
+server/ssl/*
 **/.DS_Store
+staticFiles/

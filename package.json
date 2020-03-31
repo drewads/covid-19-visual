@@ -5,8 +5,9 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server/server.js",
-    "dev-server": "node dev-server/server.js"
+    "start": "node server/contentHashing/content-hash-static.js && node server/server.js",
+    "dev-server": "node server/contentHashing/content-hash-static.js && node dev-server/server.js",
+    "content-hash": "node server/contentHashing/content-hash-static.js"
   },
   "author": "Drew Wadsworth",
   "license": "ISC",
