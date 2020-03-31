@@ -36,13 +36,21 @@ http.createServer(server).listen(HTTP_PORT, () => {
     }
 });*/
 
-const setNoStore = (res, path, stat) => {
-    res.set('Cache-Control', 'no-store');
-} 
-// change the following. only index.html should have no-store header, but shud prob content hash the others
-server.use(express.static(path.join(__dirname, '../dist'), {setHeaders: setNoStore}));
+server.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'), {headers: {'Cache-Control': 'no-store'}});
+});
 
-server.use(express.static(path.join(__dirname, '../data/plots')));
+const setStaticCache = (res, path, stat) => {
+    res.set('Cache-Control', 'public, max-age=31536000, immutable');
+} 
+
+server.use(express.static(path.join(__dirname, '../dist'), {setHeaders: setStaticCache}));
+
+const setPlotCache = (res, path, stat) => {
+    res.set('Cache-Control', 'public, max-age=172800, immutable');
+}
+
+server.use(express.static(path.join(__dirname, '../data/plots'), {setHeaders: setPlotCache}));
 
 server.get('*', (req, res) => {
     res.status(404);

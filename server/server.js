@@ -37,7 +37,7 @@ server.all('*', (req, res, next) => {
 
 const setNoStore = (res, path, stat) => {
     res.set('Cache-Control', 'no-store');
-} 
+}
 
 server.use(express.static(path.join(__dirname, '../dist'), {setHeaders: setNoStore}));
 

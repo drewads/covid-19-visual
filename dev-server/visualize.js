@@ -3,9 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const fsPromises = fs.promises;
 const child_process = require('child_process');
+const crypto = require('crypto');
 const email = require(path.join(__dirname, '../server/email.js'));
 require('@babel/register');
 const pageRender = require(path.join(__dirname, '../src/index.jsx'));
+const contentHash = require(path.join(__dirname, 'content-hash.js'));
 
 const getNewData = (url) => {
     return new Promise(resolve => {
@@ -51,7 +53,8 @@ const getStateData = (line) => {
     for (let i = 1; i <= 3; i++) {
         dataArray.push({date: stateData[i], newCases: stateData[i + 3], newDeaths: stateData[i + 6]});
     }
-    return {name: stateData[0], data: dataArray};
+    return {name: stateData[0], data: dataArray,
+            totalPlot: `${stateData[0]}Total.png`, newPlot: `${stateData[0]}New.png`};
 }
 
 const getDataArray = async () => {
@@ -61,23 +64,78 @@ const getDataArray = async () => {
     try {
         const recentData = await fsPromises.readFile(recentDataFile, {encoding: 'utf-8'});
         const stateArray = recentData.split('\n');
-        const dataArray = new Array(stateArray.length);
-        for (let i = 0; i < dataArray.length; i++) {
-            dataArray[i] = getStateData(stateArray[i]);
-        }
-        return dataArray;
+        return stateArray.map(line => getStateData(line));
     } catch (error) {
         throw error;
     }
+}
+
+const contentHashFiles = (dataArray) => {
+    return Promise.all(
+        dataArray.map(async (state) => {
+            try {
+                const newTotalPlotPath = await contentHash.hashFile(path.join(__dirname, `../data/plots/${state.totalPlot}`));
+                const newNewPlotPath = await contentHash.hashFile(path.join(__dirname, `../data/plots/${state.newPlot}`));
+                state.totalPlot = path.basename(newTotalPlotPath);
+                state.newPlot = path.basename(newNewPlotPath);
+                return state;
+            } catch (error) {
+                throw error;
+            }
+        })
+    );
 }
 
 const rerenderPage = async () => {
     const renderDest = path.join(__dirname, '../dist/index.html');
 
     try {
-        const dataArray = await getDataArray();
-        await fsPromises.writeFile(renderDest, pageRender.getPage(dataArray));
-        return;
+        const dataArray = await contentHashFiles(await getDataArray());
+        await fsPromises.writeFile(renderDest, await pageRender.getPage(dataArray));
+        
+        const newPlotNames = new Set();
+        for (const state of dataArray) {
+            newPlotNames.add(state.totalPlot);
+            newPlotNames.add(state.newPlot);
+        }
+        return newPlotNames;
+    } catch (error) {
+        throw error;
+    }
+}
+
+const deleteFiles = async (dir, files) => {
+    let caughtError = null;
+    const undeleted = [];
+
+    for (const file of files) {
+        try {
+            await fsPromises.unlink(path.join(dir, file));
+        } catch (error) {
+            if (!caughtError) {
+                caughtError = error;
+            }
+            undeleted.push(file);
+        }
+    }
+
+    if (caughtError) {
+        throw { code: caughtError.code,
+                message: `The following files were not deleted from ${dir}:\n${undeleted.toString()}`,
+                stack: caughtError.stack };
+    }
+}
+
+const hashStaticFiles = async () => {
+    const hashFilesInDistDir = ['favicon.png', 'styles.css'];
+    try {
+        // fix the fact were comparing path with basename
+        const filesInDistDir = await fsPromises.readdir(path.join(__dirname, '../dist'));
+        const toHash = filesInDistDir.filter(file => hashFilesInDistDir.includes(file));
+        const hashed = await contentHash.hashFiles(toHash.map(file => path.join(__dirname, '../dist', file)));
+        if (hashed.length > 0) {
+            console.log(`The following files were content hashed: ${hashed}!`);
+        }
     } catch (error) {
         throw error;
     }
@@ -89,18 +147,21 @@ exports.revisualizeData = async () => {
     const writeLoc = path.join(__dirname, '../data/us-states.csv');/**/ // enable for deploy
     
     try {
+        await hashStaticFiles();
         /*if (await checkDiff(writeLoc, stateData)) { // enable for deploy
             await fsPromises.writeFile(writeLoc, stateData);/**/
-            const oldPlots = await fsPromises.readdir(path.join(__dirname, '../data/plots'));
-            //await runVisualizer(); // enable for python dev
-            await rerenderPage(); // enable for react frontend dev
-            // delete oldPlots
+            const plotDir = path.join(__dirname, '../data/plots');
+            const oldPlots = await fsPromises.readdir(plotDir);
+            await runVisualizer(); // enable for python dev
+            const newPlots = await rerenderPage(); // enable for react frontend dev
+            await deleteFiles(plotDir, oldPlots.filter(plot => !newPlots.has(plot)));
+            console.log('complete'); // delete for deploy
             /*email.notify('covid-19-visual Visuals Updated', 'There has been a data and plots update.');
         } /**/ // enable for deploy
     } catch (error) {
-        console.log(error); // deploy has error.message
+        console.log(error);
         /*const subject = 'An Error Has Occurred on the covid-19-visual Server'; // enable for deploy
-        const message = `Error code: ${error.code}\n${error.stack}`;
+        const message = `Code: ${error.code}\nMessage: ${error.message}\n${error.stack}`;
         email.notify(subject, message);*/
     }
 }

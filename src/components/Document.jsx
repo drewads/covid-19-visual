@@ -7,7 +7,7 @@ function Document(props) {
         const states = [];
 
         for (const state of recentData) {
-            states.push(<State key={state.name} name={state.name} data={state.data}/>);
+            states.push(<State key={state.name} data={state}/>);
         }
 
         return states;
