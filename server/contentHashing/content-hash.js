@@ -25,6 +25,10 @@ const hashFile = (oldPath) => {
                 .catch((error) => reject(error));
             }
         });
+
+        stream.on('error', (error) => {
+            reject(error);
+        });
     });
 }
 

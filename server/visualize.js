@@ -4,41 +4,77 @@ const fs = require('fs');
 const fsPromises = fs.promises;
 const child_process = require('child_process');
 const crypto = require('crypto');
-const email = require(path.join(__dirname, 'email/email.js'));
+const email = require(path.join(__dirname, '../server/email/email.js'));
 require('@babel/register');
 const pageRender = require(path.join(__dirname, '../src/index.jsx'));
-const contentHash = require(path.join(__dirname, 'contentHashing/content-hash.js'));
+const contentHash = require(path.join(__dirname, '../server/contentHashing/content-hash.js'));
 
-const getNewData = (url) => {
-    return new Promise(resolve => {
-        https.get(url, (response) => {
-            let data = [];
-            
-            response.on('data', (chunk) => {
-                data.push(chunk);
-            });
+'use strict';
 
-            response.on('end', () => {
-                resolve(Buffer.concat(data).toString());
-            });
+const getHashOfReadStream = (stream) => {
+    return new Promise((resolve, reject) => {
+        const hash = crypto.createHash('sha256');
+        
+        stream.on('data', (chunk) => {
+            hash.update(chunk);
+        });
+
+        stream.on('end', () => {
+            resolve(hash.digest('hex'));
+        });
+
+        stream.on('error', (error) => {
+            reject(error);
         });
     });
 }
 
-const checkDiff = async (file, newData) => {
+const fileHash = async (filepath) => {
     try {
-        const currData = await fsPromises.readFile(file, {encoding: 'utf-8'});
-        return newData !== currData;
+        return await getHashOfReadStream(fs.createReadStream(filepath));
     } catch (error) {
         throw error;
     }
 }
 
+const remotePageHash = (url) => {
+    return new Promise((resolve, reject) => {
+        https.get(url, (response) => {
+            getHashOfReadStream(response)
+            .then(hash => resolve(hash))
+            .catch(error => reject(error));
+        });
+    });
+}
+
+const writeRemoteDataToFile = (url, file) => {
+    return new Promise((resolve, reject) => {
+        const writeStream = fs.createWriteStream(file);
+
+        https.get(url, (response) => {
+            response.pipe(writeStream);
+
+            response.on('error', (error) => {
+                writeStream.end();
+                reject(error);
+            })
+        });
+
+        writeStream.on('close', () => {
+            resolve();
+        });
+
+        writeStream.on('error', (error) => {
+            writeStream.end();
+            reject(error);
+        });
+    });
+}
+
 const runVisualizer = () => {
     return new Promise((resolve, reject) => {
-        // python3 on raspbian, pythonw on macos
-        child_process.exec('pythonw plot-states.py', {cwd: path.join(__dirname, 'dataAnalysis')},
-        (error, stdout, stderr) => {
+        // python3 on raspbian, pythonw on macos -- also, change cwd to __dirname
+        child_process.exec('pythonw plot-states.py', {cwd: path.join(__dirname, '../server/dataAnalysis')}, (error, stdout, stderr) => {
             if (error) {
                 reject(error);
             } else {
@@ -129,24 +165,21 @@ const deleteFiles = async (dir, files) => {
 
 exports.revisualizeData = async () => {
     const stateUrl = 'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv';
-    const stateData = await getNewData(stateUrl);
     const writeLoc = path.join(__dirname, '../data/us-states.csv');
     
     try {
-        //if (await checkDiff(writeLoc, stateData)) { // enable for deploy
-            await fsPromises.writeFile(writeLoc, stateData);
-            const plotDir = path.join(__dirname, '../data/plots');
-            const oldPlots = await fsPromises.readdir(plotDir);
-            await runVisualizer();
-            const newPlots = await rerenderPage();
-            await deleteFiles(plotDir, oldPlots.filter(plot => !newPlots.has(plot)));
-            console.log('complete'); // delete for deploy
-            /*email.notify('covid-19-visual Visuals Updated', 'There has been a data and plots update.');
-        } /**/ // enable for deploy
+        if (await fileHash(writeLoc) === await remotePageHash(stateUrl)) return;
+        await writeRemoteDataToFile(stateUrl, writeLoc);
+        const plotDir = path.join(__dirname, '../data/plots');
+        const oldPlots = await fsPromises.readdir(plotDir);
+        await runVisualizer();
+        const newPlots = await rerenderPage();
+        await deleteFiles(plotDir, oldPlots.filter(plot => !newPlots.has(plot)));
+        email.notify('covid-19-visual Visuals Updated', 'There has been a data and plots update.');
     } catch (error) {
         console.log(error);
-        /*const subject = 'An Error Has Occurred on the covid-19-visual Server'; // enable for deploy
+        const subject = 'An Error Has Occurred on the covid-19-visual Server';
         const message = `Code: ${error.code}\nMessage: ${error.message}\n${error.stack}`;
-        email.notify(subject, message);*/
+        email.notify(subject, message);
     }
 }
