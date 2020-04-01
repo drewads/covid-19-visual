@@ -5,9 +5,10 @@ const fsPromises = fs.promises;
 const child_process = require('child_process');
 const crypto = require('crypto');
 const email = require(path.join(__dirname, '../server/email/email.js'));
+const time = require(path.join(__dirname, 'time.js'));
+const contentHash = require(path.join(__dirname, '../server/contentHashing/content-hash.js'));
 require('@babel/register');
 const pageRender = require(path.join(__dirname, '../src/index.jsx'));
-const contentHash = require(path.join(__dirname, '../server/contentHashing/content-hash.js'));
 
 'use strict';
 
@@ -168,18 +169,18 @@ exports.revisualizeData = async () => {
     const writeLoc = path.join(__dirname, '../data/us-states.csv');
     
     try {
-        if (await fileHash(writeLoc) === await remotePageHash(stateUrl)) return;
-        await writeRemoteDataToFile(stateUrl, writeLoc);
+        // if (await fileHash(writeLoc) === await remotePageHash(stateUrl)) return;
+        // await writeRemoteDataToFile(stateUrl, writeLoc);
         const plotDir = path.join(__dirname, '../data/plots');
         const oldPlots = await fsPromises.readdir(plotDir);
         await runVisualizer(); // enable for python dev
         const newPlots = await rerenderPage(); // enable for react frontend dev
         await deleteFiles(plotDir, oldPlots.filter(plot => !newPlots.has(plot)));
-        console.log('complete'); // delete for deploy
-        // email.notify('covid-19-visual Visuals Updated', 'There has been a data and plots update.');
+        console.log(`${time()} complete`); // delete for deploy
+        // email.notify(`[covid-19-visual] ${time()} Visuals Updated`, 'There has been a data and plots update.');
     } catch (error) {
         console.log(error);
-        // const subject = 'An Error Has Occurred on the covid-19-visual Server'; // enable for deploy
+        // const subject = `[covid-19-visual] ${time()} An Error Has Occurred`; // enable for deploy
         // const message = `Code: ${error.code}\nMessage: ${error.message}\n${error.stack}`;
         // email.notify(subject, message);
     }

@@ -3,6 +3,10 @@
     font-family: Arial, Helvetica, sans-serif;
 }
 
+.document {
+    display: inline-block;
+}
+
 .headerName {
     font-weight: bold;
     font-size: 60;
@@ -13,20 +17,16 @@
 .headerDescription {
     font-style: italic;
     padding: 24px;
+    margin-bottom: 24px;
 }
 
 .state {
-    margin-top: 24px;
     margin-bottom: 72px;
 }
 
 .stateName {
     font-weight: bold;
     font-size: 30;
-}
-
-.document {
-    display: inline-block;
 }
 
 .newInfoTableWrapper {
@@ -46,18 +46,10 @@
     font-size: 20;
 }
 
-.newInfoTableElement {
-    text-align: center;
-}
-
-.newInfoTableElementContent {
-    display: inline-block;
-}
-
-.newInfoTableBody {
-    border: 1px;
-}
-
 .newInfoTableColumnLabels {
     font-weight: bold;
+}
+
+.newInfoTableElement {
+    text-align: center;
 }

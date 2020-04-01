@@ -1,6 +1,19 @@
 const React = require('react');
+const TableRow = require('./TableRow.jsx');
 
 function NewInfo(props) {
+    const rowContent = (rows) => {
+        const tableRows = [];
+
+        for (let row = 0; row < rows; row++) {
+            tableRows.push(<TableRow key={`${props.name}${row}`} rowClass=''
+                            content={[props.data[row].date, props.data[row].newCases, props.data[row].newDeaths]}
+                            />);
+        }
+
+        return tableRows;
+    }
+
     return (
         <div className='newInfoTableWrapper'>
             <table className='newInfoTable'>
@@ -9,51 +22,9 @@ function NewInfo(props) {
                         <th colSpan='3' className='newInfoTableHeader'>{props.name}: Last Three Days of Data</th>
                     </tr>
                 </thead>
-                <tbody className='newInfoTableBody'>
-                    <tr className='newInfoTableColumnLabels'>
-                        <td className='newInfoTableElement'>
-                            <div className='newInfoTableElementContent'>Date</div>
-                        </td>
-                        <td className='newInfoTableElement'>
-                            <div className='newInfoTableElementContent'>New Cases</div>
-                        </td>
-                        <td className='newInfoTableElement'>
-                            <div className='newInfoTableElementContent'>New Deaths</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td className='newInfoTableElement'>
-                            <div className='newInfoTableElementContent'>{props.data[0].date}</div>
-                        </td>
-                        <td className='newInfoTableElement'>
-                            <div className='newInfoTableElementContent'>{props.data[0].newCases}</div>
-                        </td>
-                        <td className='newInfoTableElement'>
-                            <div className='newInfoTableElementContent'>{props.data[0].newDeaths}</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td className='newInfoTableElement'>
-                            <div className='newInfoTableElementContent'>{props.data[1].date}</div>
-                        </td>
-                        <td className='newInfoTableElement'>
-                            <div className='newInfoTableElementContent'>{props.data[1].newCases}</div>
-                        </td>
-                        <td className='newInfoTableElement'>
-                            <div className='newInfoTableElementContent'>{props.data[1].newDeaths}</div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td className='newInfoTableElement'>
-                            <div className='newInfoTableElementContent'>{props.data[2].date}</div>
-                        </td>
-                        <td className='newInfoTableElement'>
-                            <div className='newInfoTableElementContent'>{props.data[2].newCases}</div>
-                        </td>
-                        <td className='newInfoTableElement'>
-                            <div className='newInfoTableElementContent'>{props.data[2].newDeaths}</div>
-                        </td>
-                    </tr>
+                <tbody>
+                    <TableRow rowClass='newInfoTableColumnLabels' content={['Date', 'New Cases', 'New Deaths']}/>
+                    {rowContent(3)}
                 </tbody>
             </table>
         </div>

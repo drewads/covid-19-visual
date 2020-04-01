@@ -6,3 +6,4 @@ dist/*
 .ipynb_checkpoints/
 server/ssl/*
 **/.DS_Store
+moveStatic
